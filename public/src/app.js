@@ -1,80 +1,39 @@
 // phq9.js ----------------------------
 
+/*
+NOTES 
+For next react project:
+- Start with browserify and set up Gulp tasks
+- Need to find a Routing library and implement it
+- Find better syntax highlighting and Emmet setup
+ */
+
 var App = React.createClass({
 	getInitialState : function() {
 		return {
-			// currentRoute : <Welcome updateRoute={this.updateCurrentRoute} />
-			currentRoute : 'welcome'
+			showWelcome : true,
+			showForm : false,
+			showResults :false
+		};
+	},
 
+	// psuedo routing until I find something better...
+	showPage : function(page, score) {
+		this.setState( { showWelcome : (page === 'welcome' ? true : false) });
+		this.setState( { showForm : (page === 'form' ? true : false) });
+		if (score) {
+			this.props.score = score;
+			this.setState( { showResults : (page === 'results' ? true : false) });
 		}
 	},
-
-	// too repetetive...
-	updateCurrentRoute : function(route) {
-		var welcome = <Welcome updateRoute={this.updateCurrentRoute} />;
-
-		switch (this.state.currentRoute) {
-			case 'welcome':
-				this.setState( { currentRoute : welcome });
-				break;
-			case 'questionnaire':
-				this.setState({ currentRoute : <Form updateRoute={this.updateCurrentRoute} /> });
-				break;
-			case 'results':
-				this.setState({ currentRoute : <Results updateRoute={this.updateCurrentRoute} /> });
-				break;
-			default:
-				this.setState({ currentRoute : welcome });
-				break;
-		}
-	},
-
-	componentDidMount: function() {
-		var router = Router({
-			'/welcome': this.setState.bind(this, {currentPage: 'welcome'}),
-			'/questionnaire': this.setState.bind(this, {currentPage: 'questionnaire'}),
-			'/results': this.setState.bind(this, {currentPage: 'results'})
-		});
-		router.init();
-	},
-
-	// render: function() {
-	// 	var partial;
-	// 	if (this.state.currentPage === 'home') {
-	// 	partial = <Home />;
-	// 	} else if (this.state.currentPage === 'bio') {
-	// 	partial = <Bio />;
-	// 	} else {
-	// 	// dunno, your default page
-	// 	// if you don't assign anything to partial here, you'll render nothing (undefined). In another situation you'd use the same concept to toggle between show/hide, aka render something/undefined (or null)
-	// }
 
 	render: function() {
-		/* TODO - figure out a better way for routing */
-		var route;
-		// too repetetive...
-		switch (this.state.currentPage) {
-			case 'welcome':
-				route = <Welcome />;
-				// this.setState({ currentRoute : 'welcome' });
-				break;
-			case 'questionnaire':
-				route = <Form />;
-				// this.setState({ currentRoute : 'questionnaire' });
-				break;
-			case 'results':
-				router = <Results />
-				// this.setState({ currentRoute : 'results' });
-				break;
-			default:
-				route = <Welcome />;
-				// this.setState({ currentRoute : 'welcome' });
-				break;
-		}
-
+		var welcome = <Welcome changePage={this.showPage} />;
+		var form = <Form changePage={this.showPage} />;
 		return (
 		  <div>
-		  	{route}
+		  	{ this.state.showWelcome ? welcome : null  }
+		  	{ this.state.showForm ? form : null }
 		  </div> 
 		);
 	}
@@ -82,20 +41,20 @@ var App = React.createClass({
 
 // Welcom message, default starting view
 var Welcome = React.createClass({
-	updateRoute : function() {
-		this.props.updateRoute('questionnaire');
+	// change to show questions form
+	startForm : function() {
+		this.props.changePage('form');
 	},
 
 	render : function() {
 		return (
 			<div>
 				<p>{test.welcome}</p>
-				<a href="/questionnaire" className="btn btn-primary btn-block" onClick={this.updateRoute}>Begin PHQ-9</a>
+				<a className="btn btn-primary btn-block" onClick={this.startForm}>Begin PHQ-9</a>
 			</div>
 		)
 	}
 });
-
 
 // Questionnaire Form
 var Form = React.createClass({
@@ -103,14 +62,16 @@ var Form = React.createClass({
 		return { 
 			valid : false,
 			questionsCount : test.subQuestions.length,
-			validQuestions : []
+			validQuestions : {}
 		};
 	},
 
 	// whenever a question is answered, push question numb to validQuestions array to maintain count
-	updateValidCount : function(name) {
+	updateValidCount : function(name, answer) {
 		if (this.state.validQuestions.indexOf(name) < 0) {
-			this.state.validQuestions.push(name);
+			var a = {};
+			a[name] = answer;
+			this.state.validQuestions.push(a);
 		};
 	},
 
@@ -122,6 +83,14 @@ var Form = React.createClass({
 		return this.state.valid;
 	},
 
+	// validate form and switch to results page if valid
+	getResults : function() {
+		var isValid = this.validateForm;
+		if (isValid) {
+			this.props.changePage('results');
+		};
+	},
+
 	/*
 	TODO - is there a more streamlined way of updating the questions count
 	without passing the updating the update count function with each child?
@@ -131,7 +100,7 @@ var Form = React.createClass({
 			<form>
 				<h4>{test.mainQuestion}</h4>
 				<QuestionsList questions={test.subQuestions} countValid={this.updateValidCount} />
-				<button type="submit" className="btn btn-primary" onClick={this.validateForm}>Submit</button>
+				<button type="submit" className="btn btn-primary" onClick={this.getResults}>Submit</button>
 			</form>
 		);
 	}
@@ -172,7 +141,7 @@ var OptionsList = React.createClass({
 	onAnswerChange : function(event) {
 		var target = event.target;
 		this.setState( { value : target.value } );
-		this.props.onAnswered(target.name);
+		this.props.onAnswered(target.name, target.value);
 		// TODO - find out the difference between event.target and event.currentTarget
 	},
 
@@ -196,6 +165,18 @@ var OptionsList = React.createClass({
 		return <div>{items}</div>;
 	}
 });
+
+// calculate results and display outcome based on severity
+var Results = React.createClass({
+	actionRequired : function() {
+
+	},
+
+	render : function() {
+		var results = test.calculateSeverity();
+
+	}
+})
 
 
 ReactDOM.render(
