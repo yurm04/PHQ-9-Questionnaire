@@ -32,18 +32,18 @@ var test = {
 
 		// scoring logic
 		if (score < 5) {
-			result.severity = 'none';
+			results.severity = 'None';
 		} else if (score >= 5 && score <=9) {
-			result.severity = 'mild';
+			results.severity = 'Mild';
 		} else if (score >= 10) {
 			// moderate minimum met, set recommendation
-			result.recommend = true;
+			results.recommend = true;
 		  if (score >= 10 && score <= 14) {
-				result.severity = 'moderate';
+				results.severity = 'Moderate';
 			} else if (score >= 15 && score <= 19) {
-				result.severity = 'moderately severe';
+				results.severity = 'Moderately Severe';
 			} else if (score >= 20) {
-				result.severity = 'severe';
+				results.severity = 'Severe';
 			}
 		}
 
