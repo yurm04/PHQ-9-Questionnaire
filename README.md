@@ -47,4 +47,6 @@ OR
   - Results
     - Score
     - Recommendation
+      - TherapistList
+      - RequestSuccess
 
